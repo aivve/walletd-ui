@@ -8,6 +8,6 @@ contextBridge.exposeInMainWorld('walletd', {
   stopWalletd: () => ipcRenderer.invoke('stop-walletd'),
   isWalletdRunning: () => ipcRenderer.invoke('walletd-running'),
   browseFile: () => ipcRenderer.invoke('browse-file'),
-  onWalletdStopped: (cb) => ipcRenderer.on('walletd-stopped', cb),
+  onWalletdStopped: (cb) => ipcRenderer.on('walletd-stopped', (_e, code, output) => cb(code, output)),
   onWalletdError: (cb) => ipcRenderer.on('walletd-error', (_e, msg) => cb(msg))
 });

@@ -336,37 +336,213 @@ tr.clickable { cursor: pointer; }
 
   <!-- TAB: Settings -->
   <section id="tabSettings" class="hidden">
+    <!-- Connection -->
     <div class="card">
-      <h3>Connection Settings</h3>
-      <div class="settings-grid">
+      <h3>Connection</h3>
+      <label>walletd RPC URL (used when connecting to an already running walletd)</label>
+      <input id="settingsUrl" placeholder="http://127.0.0.1:16000/json_rpc" />
+    </div>
+
+    <!-- walletd Launcher -->
+    <div class="card">
+      <h3>walletd Launcher</h3>
+      <p class="text-small text-muted mb-2">Configure and launch walletd directly from this app. The RPC URL above will be auto-set to match the bind address/port below.</p>
+
+      <div class="form-row">
         <div>
-          <label>walletd RPC URL</label>
-          <input id="settingsUrl" placeholder="http://127.0.0.1:16000/json_rpc" />
-        </div>
-        <div class="mt-2">
-          <label>walletd Executable Path</label>
+          <label>walletd Executable</label>
           <div class="flex gap-2">
-            <input id="settingsPath" placeholder="Path to walletd executable..." />
+            <input id="settingsPath" placeholder="Path to walletd..." />
             <button style="width:auto;white-space:nowrap" onclick="browseWalletd()">Browse</button>
           </div>
         </div>
-        <div class="mt-2">
-          <label>walletd Arguments</label>
-          <input id="settingsArgs" placeholder="e.g. -w wallet.wallet -p password --local" />
-        </div>
-        <div class="mt-2">
-          <label><input type="checkbox" id="settingsAuto" style="width:auto;margin-right:6px" />Auto-launch walletd on startup</label>
-        </div>
-        <div class="form-actions">
-          <button class="primary" onclick="saveAppSettings()">Save Settings</button>
-          <button id="btnLaunch" onclick="toggleWalletd()">Launch walletd</button>
+        <div>
+          <label>Config File (-c, optional)</label>
+          <div class="flex gap-2">
+            <input id="sConfigFile" placeholder="Path to .conf file..." />
+            <button style="width:auto;white-space:nowrap" onclick="browseConfigFile()">Browse</button>
+          </div>
         </div>
       </div>
+
+      <!-- Wallet File -->
+      <div class="form-row mt-2">
+        <div>
+          <label>Container (Wallet) File (-w) *</label>
+          <div class="flex gap-2">
+            <input id="sContainerFile" placeholder="wallet.wallet" />
+            <button style="width:auto;white-space:nowrap" onclick="browseContainerFile()">Browse</button>
+          </div>
+        </div>
+        <div>
+          <label>Container Password (-p) *</label>
+          <input id="sContainerPass" type="password" placeholder="Password..." />
+        </div>
+      </div>
+
+      <div class="form-row mt-2">
+        <div>
+          <label><input type="checkbox" id="sGenerate" style="width:auto;margin-right:6px" />Generate new container (-g)</label>
+        </div>
+        <div>
+          <label><input type="checkbox" id="sDeterministic" style="width:auto;margin-right:6px" />Deterministic keys (--deterministic)</label>
+        </div>
+      </div>
+
+      <!-- Key Import (only with --generate-container) -->
+      <div class="mt-2" id="keyImportSection">
+        <label>Import: View Key (--view-key, optional)</label>
+        <input id="sViewKey" placeholder="64 hex chars secret view key..." />
+        <label>Import: Spend Key (--spend-key, optional, mutually exclusive with mnemonic)</label>
+        <input id="sSpendKey" placeholder="64 hex chars secret spend key..." />
+        <label>Import: Mnemonic Seed (--mnemonic-seed, optional, mutually exclusive with spend/view key)</label>
+        <input id="sMnemonicSeed" placeholder="25-word mnemonic seed..." />
+      </div>
+
+      <!-- RPC Bind -->
+      <div class="form-row mt-2">
+        <div>
+          <label>RPC Bind Address (--bind-address)</label>
+          <input id="sBindAddr" placeholder="127.0.0.1" value="127.0.0.1" />
+        </div>
+        <div>
+          <label>RPC Bind Port (--bind-port)</label>
+          <input id="sBindPort" type="number" placeholder="16000" value="16000" />
+        </div>
+      </div>
+
+      <!-- RPC Auth -->
+      <div class="form-row mt-2">
+        <div>
+          <label>RPC Username (--rpc-user, optional)</label>
+          <input id="sRpcUser" placeholder="Leave empty for no auth" />
+        </div>
+        <div>
+          <label>RPC Password (--rpc-password, optional)</label>
+          <input id="sRpcPass" type="password" placeholder="Leave empty for no auth" />
+        </div>
+      </div>
+
+      <!-- Network Mode -->
+      <div class="form-row mt-2">
+        <div>
+          <label>Node Mode</label>
+          <select id="sNodeMode">
+            <option value="remote">Remote node (default)</option>
+            <option value="local">Local / In-process node (--local)</option>
+          </select>
+        </div>
+        <div>
+          <label><input type="checkbox" id="sTestnet" style="width:auto;margin-right:6px" />Testnet mode (--testnet)</label>
+        </div>
+      </div>
+
+      <!-- Remote Daemon -->
+      <div class="form-row mt-2" id="remoteDaemonSection">
+        <div>
+          <label>Daemon Address (--daemon-address)</label>
+          <input id="sDaemonAddr" placeholder="127.0.0.1" value="127.0.0.1" />
+        </div>
+        <div>
+          <label>Daemon Port (--daemon-port)</label>
+          <input id="sDaemonPort" type="number" placeholder="32348" value="32348" />
+        </div>
+      </div>
+
+      <!-- Logging -->
+      <div class="form-row mt-2">
+        <div>
+          <label>Log File (--log-file)</label>
+          <input id="sLogFile" placeholder="walletd.log" />
+        </div>
+        <div>
+          <label>Log Level (--log-level, 0-6)</label>
+          <select id="sLogLevel">
+            <option value="">Default (INFO)</option>
+            <option value="0">0 - FATAL</option>
+            <option value="1">1 - ERROR</option>
+            <option value="2">2 - WARNING</option>
+            <option value="3">3 - INFO</option>
+            <option value="4">4 - DEBUGGING</option>
+            <option value="5">5 - DEBUG</option>
+            <option value="6">6 - TRACE</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Scan Height -->
+      <div class="form-row mt-2">
+        <div>
+          <label>Scan Height (--scan-height, 0 = from genesis)</label>
+          <input id="sScanHeight" type="number" placeholder="0" />
+        </div>
+        <div>
+          <label>Data Directory (--data-dir, for local node)</label>
+          <input id="sDataDir" placeholder="Default OS data directory" />
+        </div>
+      </div>
+
+      <!-- SSL -->
+      <div class="mt-2">
+        <label><input type="checkbox" id="sSslEnable" style="width:auto;margin-right:6px" />Enable SSL (--rpc-ssl-enable)</label>
+      </div>
+      <div class="form-row mt-2" id="sslSection" style="display:none">
+        <div>
+          <label>SSL Chain File (--rpc-chain-file)</label>
+          <input id="sSslChain" placeholder="rpc_server.crt" />
+        </div>
+        <div>
+          <label>SSL Key File (--rpc-key-file)</label>
+          <input id="sSslKey" placeholder="rpc_server.key" />
+        </div>
+        <div>
+          <label>SSL Bind Port (--bind-port-ssl)</label>
+          <input id="sSslPort" type="number" placeholder="16100" />
+        </div>
+      </div>
+
+      <!-- Extra args -->
+      <div class="mt-2">
+        <label>Extra Arguments (appended raw to command line)</label>
+        <input id="sExtraArgs" placeholder="e.g. --add-priority-node 1.2.3.4:32347" />
+      </div>
+
+      <!-- Command Preview -->
+      <div class="mt-2">
+        <label>Command Preview</label>
+        <div class="result-box" id="cmdPreview" style="min-height:40px;cursor:pointer" onclick="copyToClipboard(el('cmdPreview').textContent)">Click "Preview" to see the command</div>
+      </div>
+
+      <div class="form-actions mt-2">
+        <button onclick="previewCommand()">Preview Command</button>
+        <button class="primary" onclick="saveAppSettings()">Save Settings</button>
+        <button id="btnLaunch" onclick="toggleWalletd()">Launch walletd</button>
+        <label style="margin:0;display:flex;align-items:center"><input type="checkbox" id="settingsAuto" style="width:auto;margin-right:6px" />Auto-launch on startup</label>
+      </div>
     </div>
+
+    <!-- Change Password -->
+    <div class="card">
+      <h3>Change Container Password</h3>
+      <p class="text-small text-muted mb-2">Runs walletd with --change-password to update the container file password, then exits.</p>
+      <div class="form-row">
+        <div>
+          <label>New Password</label>
+          <input id="sNewPass" type="password" placeholder="New password..." />
+        </div>
+        <div class="form-actions" style="align-items:flex-end">
+          <button class="danger" onclick="changePassword()">Change Password</button>
+        </div>
+      </div>
+      <div id="changePassResult"></div>
+    </div>
+
+    <!-- About -->
     <div class="card">
       <h3>About</h3>
       <p class="text-small text-muted">Karbo walletd UI v1.0.0 &mdash; Electron wrapper for Payment Gate RPC.</p>
-      <p class="text-small text-muted mt-2">Polling interval: 30 seconds. All amounts in atomic units (12 decimals).</p>
+      <p class="text-small text-muted mt-2">Polling interval: 30 seconds. All amounts use 12 decimal places (atomic units).</p>
+      <p class="text-small text-muted mt-2">walletd default RPC port: 16000 | Daemon default port: 32348 | P2P default port: 32347</p>
     </div>
   </section>
 </div>
@@ -1125,15 +1301,132 @@ async function resetWallet() {
 }
 
 /* ============================================================
-   SETTINGS
+   SETTINGS — structured walletd CLI builder
    ============================================================ */
+
+// Build args array from form fields
+function buildWalletdArgs() {
+  const args = [];
+  const v = id => (el(id)?.value || '').trim();
+  const checked = id => el(id)?.checked;
+
+  // Config file
+  if (v('sConfigFile')) { args.push('-c', v('sConfigFile')); }
+
+  // Container
+  if (v('sContainerFile')) { args.push('-w', v('sContainerFile')); }
+  if (v('sContainerPass')) { args.push('-p', v('sContainerPass')); }
+
+  // Generate
+  if (checked('sGenerate')) {
+    args.push('-g');
+    if (checked('sDeterministic')) args.push('--deterministic');
+    if (v('sMnemonicSeed')) {
+      args.push('--mnemonic-seed', v('sMnemonicSeed'));
+    } else {
+      if (v('sViewKey')) args.push('--view-key', v('sViewKey'));
+      if (v('sSpendKey')) args.push('--spend-key', v('sSpendKey'));
+    }
+  }
+
+  // RPC bind
+  if (v('sBindAddr') && v('sBindAddr') !== '127.0.0.1') args.push('--bind-address', v('sBindAddr'));
+  if (v('sBindPort') && v('sBindPort') !== '16000') args.push('--bind-port', v('sBindPort'));
+
+  // RPC auth
+  if (v('sRpcUser')) args.push('--rpc-user', v('sRpcUser'));
+  if (v('sRpcPass')) args.push('--rpc-password', v('sRpcPass'));
+
+  // Node mode
+  if (v('sNodeMode') === 'local') {
+    args.push('--local');
+  } else {
+    if (v('sDaemonAddr') && v('sDaemonAddr') !== '127.0.0.1') args.push('--daemon-address', v('sDaemonAddr'));
+    if (v('sDaemonPort') && v('sDaemonPort') !== '32348') args.push('--daemon-port', v('sDaemonPort'));
+  }
+
+  // Testnet
+  if (checked('sTestnet')) args.push('--testnet');
+
+  // Logging
+  if (v('sLogFile')) args.push('--log-file', v('sLogFile'));
+  if (v('sLogLevel')) args.push('--log-level', v('sLogLevel'));
+
+  // Scan height
+  if (v('sScanHeight') && v('sScanHeight') !== '0') args.push('--scan-height', v('sScanHeight'));
+
+  // Data dir
+  if (v('sDataDir')) args.push('--data-dir', v('sDataDir'));
+
+  // SSL
+  if (checked('sSslEnable')) {
+    args.push('--rpc-ssl-enable');
+    if (v('sSslChain')) args.push('--rpc-chain-file', v('sSslChain'));
+    if (v('sSslKey')) args.push('--rpc-key-file', v('sSslKey'));
+    if (v('sSslPort')) args.push('--bind-port-ssl', v('sSslPort'));
+  }
+
+  // Extra args
+  if (v('sExtraArgs')) {
+    args.push(...v('sExtraArgs').split(/\s+/).filter(Boolean));
+  }
+
+  return args;
+}
+
+function previewCommand() {
+  const exePath = el('settingsPath').value.trim() || 'walletd';
+  const args = buildWalletdArgs();
+  // Mask password in preview
+  const display = args.map((a, i) => {
+    if (i > 0 && (args[i-1] === '-p' || args[i-1] === '--rpc-password')) return '****';
+    return a.includes(' ') ? `"${a}"` : a;
+  });
+  el('cmdPreview').textContent = exePath + ' ' + display.join(' ');
+}
+
+// Toggle SSL section visibility
+el('sSslEnable').addEventListener('change', () => {
+  el('sslSection').style.display = el('sSslEnable').checked ? '' : 'none';
+});
+
+// Toggle remote daemon section based on node mode
+el('sNodeMode').addEventListener('change', () => {
+  el('remoteDaemonSection').style.display = el('sNodeMode').value === 'local' ? 'none' : '';
+});
+
 async function loadAppSettings() {
   try {
     const s = await window.walletd.getSettings();
     el('settingsUrl').value = s.rpcUrl || '';
     el('settingsPath').value = s.walletdPath || '';
-    el('settingsArgs').value = s.walletdArgs || '';
     el('settingsAuto').checked = !!s.autoLaunch;
+
+    // Structured fields
+    if (s.containerFile) el('sContainerFile').value = s.containerFile;
+    if (s.containerPass) el('sContainerPass').value = s.containerPass;
+    if (s.configFile) el('sConfigFile').value = s.configFile;
+    if (s.bindAddr) el('sBindAddr').value = s.bindAddr;
+    if (s.bindPort) el('sBindPort').value = s.bindPort;
+    if (s.rpcUser) el('sRpcUser').value = s.rpcUser;
+    if (s.rpcPass) el('sRpcPass').value = s.rpcPass;
+    if (s.nodeMode) el('sNodeMode').value = s.nodeMode;
+    if (s.daemonAddr) el('sDaemonAddr').value = s.daemonAddr;
+    if (s.daemonPort) el('sDaemonPort').value = s.daemonPort;
+    if (s.testnet) el('sTestnet').checked = true;
+    if (s.logFile) el('sLogFile').value = s.logFile;
+    if (s.logLevel) el('sLogLevel').value = s.logLevel;
+    if (s.scanHeight) el('sScanHeight').value = s.scanHeight;
+    if (s.dataDir) el('sDataDir').value = s.dataDir;
+    if (s.sslEnable) { el('sSslEnable').checked = true; el('sslSection').style.display = ''; }
+    if (s.sslChain) el('sSslChain').value = s.sslChain;
+    if (s.sslKey) el('sSslKey').value = s.sslKey;
+    if (s.sslPort) el('sSslPort').value = s.sslPort;
+    if (s.extraArgs) el('sExtraArgs').value = s.extraArgs;
+
+    // Show/hide sections
+    el('remoteDaemonSection').style.display = (s.nodeMode === 'local') ? 'none' : '';
+
     updateLaunchButton();
   } catch (e) {
     console.error('loadSettings:', e);
@@ -1141,11 +1434,42 @@ async function loadAppSettings() {
 }
 
 async function saveAppSettings() {
+  const bindAddr = el('sBindAddr').value.trim() || '127.0.0.1';
+  const bindPort = el('sBindPort').value.trim() || '16000';
+  const protocol = el('sSslEnable').checked ? 'https' : 'http';
+
+  // Auto-compute RPC URL from bind settings if user hasn't manually overridden
+  const autoUrl = `${protocol}://${bindAddr}:${bindPort}/json_rpc`;
+  const currentUrl = el('settingsUrl').value.trim();
+  if (!currentUrl || currentUrl === 'http://127.0.0.1:16000/json_rpc' || currentUrl.includes(':' + bindPort + '/')) {
+    el('settingsUrl').value = autoUrl;
+  }
+
   const s = {
-    rpcUrl: el('settingsUrl').value.trim() || 'http://127.0.0.1:16000/json_rpc',
+    rpcUrl: el('settingsUrl').value.trim() || autoUrl,
     walletdPath: el('settingsPath').value.trim(),
-    walletdArgs: el('settingsArgs').value.trim(),
-    autoLaunch: el('settingsAuto').checked
+    autoLaunch: el('settingsAuto').checked,
+    // Structured fields
+    containerFile: el('sContainerFile').value.trim(),
+    containerPass: el('sContainerPass').value.trim(),
+    configFile: el('sConfigFile').value.trim(),
+    bindAddr,
+    bindPort,
+    rpcUser: el('sRpcUser').value.trim(),
+    rpcPass: el('sRpcPass').value.trim(),
+    nodeMode: el('sNodeMode').value,
+    daemonAddr: el('sDaemonAddr').value.trim(),
+    daemonPort: el('sDaemonPort').value.trim(),
+    testnet: el('sTestnet').checked,
+    logFile: el('sLogFile').value.trim(),
+    logLevel: el('sLogLevel').value,
+    scanHeight: el('sScanHeight').value.trim(),
+    dataDir: el('sDataDir').value.trim(),
+    sslEnable: el('sSslEnable').checked,
+    sslChain: el('sSslChain').value.trim(),
+    sslKey: el('sSslKey').value.trim(),
+    sslPort: el('sSslPort').value.trim(),
+    extraArgs: el('sExtraArgs').value.trim()
   };
   await window.walletd.saveSettings(s);
   toast('Settings saved!', 'success');
@@ -1156,12 +1480,24 @@ async function browseWalletd() {
   if (path) el('settingsPath').value = path;
 }
 
+async function browseConfigFile() {
+  const path = await window.walletd.browseFile();
+  if (path) el('sConfigFile').value = path;
+}
+
+async function browseContainerFile() {
+  const path = await window.walletd.browseFile();
+  if (path) el('sContainerFile').value = path;
+}
+
 async function toggleWalletd() {
   const running = await window.walletd.isWalletdRunning();
   if (running) {
     await window.walletd.stopWalletd();
     toast('walletd stopped', 'success');
   } else {
+    // Save settings first so main process picks them up
+    await saveAppSettings();
     const r = await window.walletd.launchWalletd();
     if (r.error) toast(`Launch failed: ${r.error}`, 'error');
     else toast('walletd launched!', 'success');
@@ -1175,8 +1511,28 @@ async function updateLaunchButton() {
   el('btnLaunch').className = running ? 'danger' : '';
 }
 
-window.walletd.onWalletdStopped(() => {
-  toast('walletd process stopped', 'error');
+async function changePassword() {
+  const newPass = el('sNewPass').value;
+  if (!newPass) { toast('Enter new password', 'error'); return; }
+  const exePath = el('settingsPath').value.trim();
+  const container = el('sContainerFile').value.trim();
+  const oldPass = el('sContainerPass').value.trim();
+  if (!exePath || !container) { toast('Set walletd path and container file first', 'error'); return; }
+
+  try {
+    const r = await window.walletd.rpc('__changePassword', { exePath, container, oldPass, newPass });
+    resultBox('changePassResult', 'Password changed successfully!');
+    toast('Password changed!', 'success');
+  } catch (e) {
+    // Fallback: show command for manual execution
+    const cmd = `${exePath} -w ${container} -p "${oldPass}" --change-password "${newPass}"`;
+    resultBox('changePassResult', `Run this manually (walletd must be stopped):\n${cmd}`, true);
+  }
+}
+
+window.walletd.onWalletdStopped((code, output) => {
+  const msg = code === 0 ? 'walletd exited normally' : `walletd exited (code ${code})`;
+  toast(output ? `${msg}: ${output.slice(0, 100)}` : msg, code === 0 ? 'info' : 'error');
   updateLaunchButton();
 });
 window.walletd.onWalletdError(msg => toast(`walletd error: ${msg}`, 'error'));
