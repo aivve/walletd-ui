@@ -1,0 +1,27 @@
+{
+  "name": "karbo-walletd-ui",
+  "version": "1.0.0",
+  "description": "Karbo walletd (Payment Gate) UI",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "org.karbo.walletd-ui",
+    "productName": "Karbo Wallet",
+    "files": [
+      "main.js",
+      "preload.js",
+      "index.html",
+      "icon.png"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}
