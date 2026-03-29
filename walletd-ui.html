@@ -3,160 +3,199 @@
 <head>
 <meta charset="utf-8">
 <title>Karbo Wallet</title>
-
 <style>
-:root {
-  --bg: #0f1720;
-  --panel: #1a2330;
-  --panel2: #202b3b;
-  --accent: #4fa3c7;
-  --text: #e6edf3;
-  --muted: #8a9bb2;
-  --danger: #ff6b6b;
+:root{
+  --bg:#0f1720; --panel:#1a2330; --panel2:#202b3b; --accent:#4fa3c7;
+  --text:#e6edf3; --muted:#8a9bb2; --danger:#ff6b6b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui}
+header{padding:12px 20px;background:linear-gradient(90deg,#1b2636,#0f1720);
+display:flex;justify-content:space-between;border-bottom:1px solid #2b3648;align-items:center}
+.coin svg{width:36px;height:36px;margin-right:10px;vertical-align:middle}
+.main-wrap{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 110px)}
+aside{background:var(--panel);padding:12px;border-right:1px solid #2b3648;overflow-y:auto}
+section{padding:14px;overflow-y:auto}
+.footer{height:110px;background:var(--panel2);border-top:1px solid #2b3648;padding:12px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.hstack{display:flex;gap:8px;align-items:center}
+.address{position:relative;padding:8px;border-radius:6px;margin-bottom:6px;background:var(--panel2);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.address.selected{outline:2px solid rgba(79,163,199,0.14);box-shadow:0 0 0 2px rgba(79,163,199,0.06) inset}
+.addr-left{display:flex;flex-direction:column;gap:4px}
+.small{font-size:12px;color:var(--muted);word-break:break-all}
+.icon-btn{background:#1a2634;border:1px solid #243544;color:var(--text);padding:6px;border-radius:6px;cursor:pointer}
+.icon-btn:hover{background:#223245}
+.cog-menu{position:absolute;right:8px;top:40px;background:var(--panel2);border:1px solid #324a67;border-radius:6px;overflow:hidden;display:none;min-width:180px;z-index:50}
+.cog-menu button{width:100%;padding:8px;text-align:left;border:0;background:transparent;color:var(--text);cursor:pointer}
+.cog-menu button:hover{background:#0f2536}
+button,input,select{width:100%;padding:8px;margin:6px 0;border-radius:6px;background:#0f1720;color:var(--text);border:1px solid #324a67}
+button{cursor:pointer}
+button:hover{background:#324a67}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid #2b3648;padding:6px}
+.amount.neg{color:var(--danger)}
+.amount.pos{color:#8dffa1}
+.pagination{display:flex;justify-content:center;gap:12px;margin:6px 0}
+.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);display:flex;justify-content:center;align-items:center;z-index:9999}
+.modal-content{background:var(--panel2);padding:20px;border-radius:8px;width:600px;max-width:95%;box-shadow:0 6px 30px rgba(0,0,0,0.6)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.modal-header .close-btn{width:auto;padding:4px 8px;background:#324a67;border:1px solid #2a3b52;border-radius:4px;color:var(--text);cursor:pointer}
+.modal-body div{margin:8px 0}
+.modal-body button{width:auto;padding:4px 6px;font-size:12px;margin-left:6px}
+.tabbar{display:flex;gap:8px;margin-bottom:10px}
+.tab{padding:8px 12px;border-radius:8px;background:transparent;border:1px solid transparent;cursor:pointer}
+.tab.active{background:linear-gradient(90deg,#173445,#122733);border-color:#274558}
+.footer .left{display:flex;gap:8px;align-items:center}
+.footer .right{display:flex;gap:8px;align-items:center}
+.small-muted{font-size:12px;color:var(--muted)}
+.footer button {
+  width:auto;
+  min-width:160px;
+  white-space:nowrap;
 }
 
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, sans-serif;
+.coin svg {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #fff;
+    display: inline-block;
+    vertical-align: middle;
+    margin-top: -6px;
+    margin-right: 10px;
 }
-
-header {
-  padding: 12px 20px;
-  background: linear-gradient(90deg, #1b2636, #0f1720);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #2b3648;
-}
-
-main {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  height: calc(100vh - 54px);
-}
-
-aside {
-  background: var(--panel);
-  padding: 12px;
-  border-right: 1px solid #2b3648;
-  overflow-y: auto;
-}
-
-section {
-  padding: 14px;
-  overflow-y: auto;
-}
-
-h3 { margin-top: 0; }
-
-.address {
-  padding: 8px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-  background: var(--panel2);
-  cursor: pointer;
-  border: 1px solid transparent;
-}
-
-.address.selected {
-  border-color: var(--accent);
-}
-
-.small { font-size: 12px; color: var(--muted); word-break: break-all; }
-
-button {
-  background: #2a3b52;
-  color: var(--text);
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid #33465f;
-  cursor: pointer;
-  margin: 4px 0;
-}
-button:hover { background: #324a67; }
-
-input, select {
-  width: 100%;
-  padding: 8px;
-  margin: 6px 0;
-  background: #0f1720;
-  color: var(--text);
-  border: 1px solid #324a67;
-  border-radius: 6px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  border-bottom: 1px solid #2b3648;
-  padding: 6px;
-}
-
-.amount.neg { color: var(--danger); }
-.amount.pos { color: #8dffa1; }
 </style>
 </head>
-
 <body>
 
 <header>
-  <b>Karbo Wallet</b>
-  <span id="totalBalance"></span>
+  <div class="hstack">
+    <span class="coin">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2500000 2500000"><g id="krb-logo"><path fill="#01579b" d="M1251219 1162750c18009,-3203 34019,-10006 48025,-20412 14009,-10407 27215,-28016 39622,-52029l275750 -538290c10803,-18010 24012,-32419 39218,-43625 15210,-10806 33219,-16410 53232,-16410l174893 0 -343384 633144c-15209,26016 -32419,47228 -51628,63635 -19613,16409 -41225,28815 -64838,37221 36822,9604 67638,25213 92854,47225 24812,21610 48425,52025 70437,91247l330578 668363 -192503 0c-38822,0 -70041,-21213 -93653,-63235l-270947 -566303c-14006,-25215 -29216,-43225 -45622,-54034 -16409,-10803 -37222,-17206 -62034,-18809l0 287359 -151281 0 0 -288559 -111263 0 0 703581 -213716 0 0 -1540835 213716 0 0 673166 111263 0 0 -332981 151281 0 0 330581z"/></g></svg>
+    </span>
+    <b>Karbo Wallet</b>
+  </div>
+  <div class="small-muted" id="totalBalance">Total: —</div>
 </header>
 
-<main>
-<aside>
-  <h3>Addresses</h3>
-  <div id="addresses"></div>
+<div style="display:flex;flex-direction:column;height:calc(100vh - 110px)">
+  <div class="main-wrap">
+    <aside>
+      <h3>Addresses</h3>
+      <div id="addresses"></div>
+    </aside>
 
-  <button onclick="createAddress()">? Create address</button>
-  <button onclick="saveWallet()">?? Save wallet</button>
-  <button onclick="showKeys()">?? Show keys</button>
-</aside>
+    <section>
+      <div class="tabbar">
+        <div id="tabTx" class="tab active" onclick="showTab('tx')">Transactions</div>
+        <div id="tabSend" class="tab" onclick="showTab('send')">Send</div>
+      </div>
 
-<section>
-  <h3>Transactions</h3>
-  <table>
-    <thead>
-      <tr><th>Time</th><th>Amount</th><th>Txid</th></tr>
-    </thead>
-    <tbody id="txs"></tbody>
-  </table>
+      <div id="viewTx">
+        <h3>Transactions</h3>
+        <table>
+          <thead><tr><th>Time</th><th>Amount</th><th>Txid</th></tr></thead>
+          <tbody id="txs"></tbody>
+        </table>
 
-  <hr>
+        <div class="pagination">
+          <button onclick="prevPage()">◀ Prev</button>
+          <span id="pageInfo"></span>
+          <button onclick="nextPage()">Next ▶</button>
+        </div>
+      </div>
 
-  <h3>Send</h3>
-  <label>From address (optional)</label>
-  <select id="sendFrom"></select>
+      <div id="viewSend" style="display:none">
+        <h3>Send Transaction</h3>
+        <label for="sendFrom">From address (optional)</label>
+        <select id="sendFrom"></select>
+        <label for="to">Destination</label>
+        <input id="to" placeholder="Destination address">
+        <label for="amount">Amount (KRB)</label>
+        <input id="amount" placeholder="0.00">
+        <label for="fee">Fee (KRB)</label>
+        <input id="fee" value="0.01">
+        <button onclick="send()">Send</button>
+        <div class="small" id="sendStatus"></div>
+      </div>
 
-  <label>Destination</label>
-  <input id="to">
+    </section>
+  </div>
 
-  <label>Amount (KARBO)</label>
-  <input id="amount">
+  <div class="footer">
+    <div class="left">
+      <div style="min-width:220px">
+        <input id="searchAddr" placeholder="Filter addresses (contains)"/>
+      </div>
+      <div class="small-muted">Polling every 60s</div>
+    </div>
+    <div class="right">
+      <button onclick="createAddress()">➕ Create address</button>
+      <button onclick="saveWallet()">💾 Save wallet</button>
+      <button onclick="exportWallet()">📤 Export</button>
+      <button onclick="confirmReset()">⚠ Reset</button>
+    </div>
+  </div>
+</div>
 
-  <label>Fee (atomic)</label>
-  <input id="fee" value="100000">
+<!-- KEYS MODAL -->
+<div id="keysModal" class="modal" style="display:none">
+  <div class="modal-content">
+    <div class="modal-header"><span>Wallet Keys</span><button class="close-btn" onclick="hideKeys()">✖</button></div>
+    <div class="modal-body">
+      <div class="small"><b>View Key:</b> <span id="viewKey"></span> <button onclick="copyText('viewKey')">Copy</button></div>
+      <div class="small"><b>Spend Key:</b> <span id="spendKey"></span> <button onclick="copyText('spendKey')">Copy</button></div>
+      <div class="small"><b>Mnemonic:</b> <span id="mnemonic"></span> <button onclick="copyText('mnemonic')">Copy</button></div>
+    </div>
+  </div>
+</div>
 
-  <button onclick="send()">Send</button>
-  <div class="small" id="sendStatus"></div>
-</section>
-</main>
+<!-- CONFIRM MODAL -->
+<div id="confirmModal" class="modal" style="display:none">
+  <div class="modal-content">
+    <div class="modal-header"><span id="confirmTitle">Confirm</span><button class="close-btn" onclick="hideConfirm()">✖</button></div>
+    <div class="modal-body" id="confirmBody">
+      <div id="confirmMessage" class="small"></div>
+      <div style="margin-top:8px;">
+        <input id="confirmInput" placeholder="Type confirmation here"/>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="confirmOk" onclick="runConfirmOk()">Confirm</button>
+          <button onclick="hideConfirm()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
+/* CONFIG */
 const RPC = "http://127.0.0.1:16001/json_rpc";
-const ATOMIC = 1e12;
+const ATOMIC = 1e12;             // your atomic scale
+const PAGE_SIZE = 20;
+const POLL_INTERVAL_MS = 60000;  // 1 minute
+const BATCH_BLOCKS = 1000;       // blocks fetched per batch when loading backward
 
+/* STATE */
 let addresses = [];
+let filteredAddrs = [];
 let selected = null;
+let allTxs = [];
+let currentPage = 0;
+let tipHeight = 0;
+let blockCursor = 0;
+let loadingBatch = false;
+let activeTab = 'tx';
+let searchTerm = '';
 
-const rpc = async (method, params={}) => {
+/* DOM refs */
+const addressesDiv = document.getElementById("addresses");
+const txsTbody = document.getElementById("txs");
+const pageInfo = document.getElementById("pageInfo");
+const totalBalanceEl = document.getElementById("totalBalance");
+const sendFromSelect = document.getElementById("sendFrom");
+const sendStatus = document.getElementById("sendStatus");
+
+/* RPC helper */
+async function rpc(method, params={}) {
   const r = await fetch(RPC, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
@@ -165,105 +204,358 @@ const rpc = async (method, params={}) => {
   const j = await r.json();
   if (j.error) throw j.error;
   return j.result;
-};
-
-const fmt = x => (x/ATOMIC).toFixed(8);
-
-async function load() {
-  const a = await rpc("getAddresses");
-  addresses = [];
-
-  let total = 0;
-  for (const addr of a.addresses) {
-    const b = await rpc("getBalance", { address: addr });
-    addresses.push({ addr, bal: b.availableBalance });
-    total += b.availableBalance;
-  }
-
-  document.getElementById("totalBalance").innerText =
-    `Total: ${fmt(total)} KARBO`;
-
-  selected ??= addresses[0]?.addr;
-  renderAddresses();
-  loadTxs();
 }
 
-function renderAddresses() {
-  const box = document.getElementById("addresses");
-  const sel = document.getElementById("sendFrom");
-  box.innerHTML = "";
-  sel.innerHTML = `<option value="">(auto)</option>`;
+function fmt(x){ return (x/ATOMIC).toFixed(8); }
 
-  addresses.forEach(a => {
-    const d = document.createElement("div");
-    d.className = "address" + (a.addr===selected?" selected":"");
-    d.onclick = () => { selected = a.addr; loadTxs(); renderAddresses(); };
-    d.innerHTML = `
-      <div>${fmt(a.bal)} KARBO</div>
-      <div class="small">${a.addr}</div>`;
-    box.appendChild(d);
-
-    const o = document.createElement("option");
-    o.value = a.addr;
-    o.textContent = a.addr;
-    sel.appendChild(o);
-  });
+/* TABS */
+function showTab(name){
+  activeTab = name;
+  document.getElementById("viewTx").style.display = (name === 'tx') ? '' : 'none';
+  document.getElementById("viewSend").style.display = (name === 'send') ? '' : 'none';
+  document.getElementById("tabTx").classList.toggle('active', name==='tx');
+  document.getElementById("tabSend").classList.toggle('active', name==='send');
 }
 
-async function loadTxs() {
-  const r = await rpc("getTransactions", {
-    addresses: [selected],
-    firstBlockIndex: 0,
-    blockCount: 1000000
-  });
-
-  const box = document.getElementById("txs");
-  box.innerHTML = "";
-
-  r.items.forEach(b =>
-    b.transactions.forEach(t =>
-      t.transfers.forEach(tr => {
-        if (tr.address !== selected) return;
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${new Date(t.timestamp*1000).toLocaleString()}</td>
-          <td class="amount ${tr.amount<0?'neg':'pos'}">${fmt(tr.amount)}</td>
-          <td class="small">${t.transactionHash.slice(0,20)}�</td>`;
-        box.appendChild(row);
-      })
-    )
-  );
-}
-
-async function createAddress(){ await rpc("createAddress"); load(); }
-async function saveWallet(){ await rpc("save"); alert("Saved"); }
-
-async function showKeys() {
+/* LOAD / BALANCES */
+async function loadAddressesAndBalances(){
   try {
-    const view = await rpc("getViewKey");
-    const seed = await rpc("getMnemonicSeed");
-    alert(`View key:\n${view.viewSecretKey}\n\nMnemonic:\n${seed.mnemonicSeed}`);
+    const a = await rpc("getAddresses");
+    addresses = a.addresses.slice(); // array of strings
+    // apply filter
+    filteredAddrs = addresses.filter(x => !searchTerm || x.includes(searchTerm));
+    // compute balances
+    let total = 0;
+    const arr = [];
+    for(const addr of filteredAddrs){
+      try{
+        const b = await rpc("getBalance", { address: addr });
+        arr.push({ addr, bal: b.availableBalance });
+        total += b.availableBalance;
+      }catch(e){
+        arr.push({ addr, bal: 0 });
+      }
+    }
+    // store addresses display list
+    addresses = arr;
+    if(!selected && addresses.length) selected = addresses[0].addr;
+    totalBalanceEl.textContent = `Total: ${fmt(total)} KRB`;
+    renderAddresses();
+    populateSendFrom();
   } catch(e) {
-    alert("Cannot read keys:\n"+JSON.stringify(e,null,2));
+    console.error("loadAddressesAndBalances:", e);
   }
 }
 
-async function send() {
-  try {
-    const p = {
-      transfers:[{ address:to.value, amount:Math.floor(amount.value*ATOMIC)}],
-      fee:parseInt(fee.value)
+/* RENDER ADDRESSES with cog menu */
+function renderAddresses(){
+  addressesDiv.innerHTML = '';
+  addresses.forEach(a=>{
+    const wrapper = document.createElement('div');
+    wrapper.className = 'address' + (a.addr === selected ? ' selected' : '');
+    // left column
+    const left = document.createElement('div'); left.className = 'addr-left';
+    const bal = document.createElement('div'); bal.textContent = `${fmt(a.bal)} KRB`;
+    const addrEl = document.createElement('div'); addrEl.className='small'; addrEl.textContent = a.addr;
+    left.appendChild(bal); left.appendChild(addrEl);
+    left.onclick = ()=> { selected = a.addr; currentPage = 0; allTxs = []; initTxCursor().then(loadTxBatch); renderAddresses(); };
+
+    // cog button and menu
+    const right = document.createElement('div'); right.style.position='relative';
+    const cog = document.createElement('button'); cog.className = 'icon-btn'; cog.innerHTML = '⚙';
+    const menu = document.createElement('div'); menu.className = 'cog-menu';
+    menu.innerHTML = `
+      <button onclick="showKeysFor('${a.addr}')">Show keys</button>
+      <button onclick="prepareSendFrom('${a.addr}')">Send from this address</button>
+      <button onclick="prepareDeleteAddress('${a.addr}')">Delete address</button>
+    `;
+    cog.onclick = (ev)=>{ ev.stopPropagation(); // toggle
+      // hide any other open menus
+      document.querySelectorAll('.cog-menu').forEach(m=>m.style.display='none');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
     };
-    if (sendFrom.value) p.addresses=[sendFrom.value];
-    const r = await rpc("sendTransaction", p);
-    sendStatus.innerText = "TX sent: "+r.transactionHash;
-    load();
-  } catch(e) {
-    sendStatus.innerText = "Error: "+e.message;
+    // hide on outside click
+    document.addEventListener('click', ()=> menu.style.display='none');
+    right.appendChild(cog); right.appendChild(menu);
+
+    wrapper.appendChild(left);
+    wrapper.appendChild(right);
+    addressesDiv.appendChild(wrapper);
+  });
+}
+
+/* populate sendFrom select */
+function populateSendFrom(){
+  sendFromSelect.innerHTML = `<option value="">(auto)</option>`;
+  addresses.forEach(a=>{
+    const opt = document.createElement('option'); opt.value=a.addr; opt.textContent=a.addr;
+    sendFromSelect.appendChild(opt);
+  });
+}
+
+/* TX LOADING (reverse block loading, ensure page has PAGE_SIZE txs) */
+async function initTxCursor(){
+  try{
+    const s = await rpc("getStatus");
+    tipHeight = s.blockCount;
+    blockCursor = tipHeight;
+    // keep previously loaded txs only if same selected? we'll reset
+    allTxs = [];
+    currentPage = 0;
+  }catch(e){
+    console.error("initTxCursor", e);
   }
 }
 
-load();
+/* load one batch (newest blocks) and append unique txs */
+async function loadTxBatch(){
+  if(loadingBatch) return;
+  if(blockCursor <= 0) return;
+  loadingBatch = true;
+  try{
+    const start = Math.max(blockCursor - BATCH_BLOCKS, 0);
+    const count = blockCursor - start;
+    const res = await rpc("getTransactions", { addresses:[selected], firstBlockIndex: start, blockCount: count });
+    blockCursor = start;
+    // flatten transfers -> use tx hash to dedupe
+    const existing = new Set(allTxs.map(x=>x.tx.transactionHash));
+    res.items.forEach(block=>{
+      block.transactions.forEach(tx=>{
+        tx.transfers.forEach(tr=>{
+          if(tr.address === selected && !existing.has(tx.transactionHash)){
+            allTxs.push({ tx, tr });
+            existing.add(tx.transactionHash);
+          }
+        });
+      });
+    });
+    // sort newest-first
+    allTxs.sort((a,b)=>b.tx.timestamp - a.tx.timestamp);
+  }catch(e){
+    console.error("loadTxBatch", e);
+  } finally {
+    loadingBatch = false;
+  }
+}
+
+/* ensure page has PAGE_SIZE items by loading more batches until it does or no more blocks */
+async function ensurePageFilled(){
+  while(allTxs.length < (currentPage+1)*PAGE_SIZE && blockCursor > 0){
+    await loadTxBatch();
+    // if no new txs added this iteration, break to avoid infinite loop
+    // (we check blockCursor decreasing, or break if loadingBatch false and no change)
+    if(allTxs.length >= (currentPage+1)*PAGE_SIZE) break;
+    if(blockCursor <= 0) break;
+  }
+}
+
+/* render current page */
+function renderTxPage(){
+  txsTbody.innerHTML = '';
+  const start = currentPage * PAGE_SIZE;
+  const page = allTxs.slice(start, start + PAGE_SIZE);
+  if(page.length === 0 && currentPage > 0){
+    currentPage--;
+    return renderTxPage();
+  }
+  page.forEach(({tx,tr})=>{
+    const trEl = document.createElement('tr');
+    trEl.innerHTML = `
+      <td>${new Date(tx.timestamp*1000).toLocaleString()}</td>
+      <td class="amount ${tr.amount<0 ? 'neg' : 'pos'}">${fmt(tr.amount)}</td>
+      <td class="small">${tx.transactionHash.slice(0,18)}…</td>`;
+    txsTbody.appendChild(trEl);
+  });
+  pageInfo.textContent = `Page ${currentPage+1} (${allTxs.length} tx loaded)`;
+}
+
+/* pagination */
+async function nextPage(){
+  currentPage++;
+  // ensure we have enough txs for this page
+  await ensurePageFilled();
+  renderTxPage();
+  // if we still have less than needed, and blockCursor > 0, try again nextPage will trigger load
+}
+function prevPage(){ if(currentPage>0){ currentPage--; renderTxPage(); } }
+
+/* INITIAL LOAD wrapper */
+async function loadAll(){
+  await loadAddressesAndBalances();
+  await initTxCursor();
+  await loadTxBatch();         // load newest batch
+  await ensurePageFilled();    // ensure first page full
+  renderTxPage();
+}
+
+/* POLLING: refresh balances & new txs every minute */
+async function poller(){
+  try{
+    await loadAddressesAndBalances(); // updates balances and address list
+    // fetch new blocks after tip
+    const s = await rpc("getStatus");
+    const newTip = s.blockCount;
+    if(newTip > tipHeight){
+      // set cursor to newTip and fetch batches to get new txs
+      tipHeight = newTip;
+      blockCursor = tipHeight;
+      await loadTxBatch();   // will append new txs (deduped)
+      // keep current page index: render current page again
+      renderTxPage();
+    }
+  }catch(e){
+    console.error("poller error", e);
+  }
+}
+setInterval(poller, POLL_INTERVAL_MS);
+
+/* ACTIONS:
+   - createAddress
+   - saveWallet
+   - exportWallet
+   - confirmReset
+   - delete address flow (prepareDeleteAddress -> confirm -> run)
+*/
+async function createAddress(){
+  try{ await rpc("createAddress"); await loadAll(); }catch(e){ alert("Create address failed: "+JSON.stringify(e)); }
+}
+async function saveWallet(){
+  try{ await rpc("save"); alert("Saved"); }catch(e){ alert("Save failed: "+JSON.stringify(e)); }
+}
+async function exportWallet(){
+  try{
+    const res = await rpc("export");
+    // if res contains wallet data, open in new window as text
+    const content = res.wallet || res.data || JSON.stringify(res, null, 2);
+    const w = window.open();
+    w.document.body.style.background = "#0f1720";
+    w.document.body.style.color = "#e6edf3";
+    w.document.body.style.whiteSpace = "pre-wrap";
+    w.document.title = "wallet export";
+    w.document.body.textContent = content;
+  }catch(e){ alert("Export failed: "+JSON.stringify(e));}
+}
+
+function confirmReset(){
+  showConfirm("Reset wallet", "This will reset the wallet state. Type RESET to confirm.", "RESET", async ()=>{
+    try{ await rpc("reset"); alert("Wallet reset"); await loadAll(); }catch(e){ alert("Reset failed: "+JSON.stringify(e)); }
+  });
+}
+
+/* DELETE address flow */
+function prepareDeleteAddress(addr){
+  showConfirm("Delete address", `This will delete address:\n${addr}\nType DELETE to confirm.`, "DELETE", async ()=>{
+    try{
+      await rpc("deleteAddress", { address: addr });
+      alert("Address deleted");
+      // if deleted selected, unset selected
+      if(selected === addr) selected = null;
+      await loadAll();
+    }catch(e){
+      alert("Delete failed: "+JSON.stringify(e));
+    }
+  });
+}
+
+/* KEYS & SEND helpers from cog */
+function showKeysFor(addr){
+  // open modal and populate keys for addr
+  showKeys(addr);
+}
+function prepareSendFrom(addr){
+  // preselect from address and open send tab
+  showTab('send');
+  // we wait to populate sendFromSelect
+  setTimeout(()=>{ sendFromSelect.value = addr; }, 50);
+}
+
+/* KEYS modal functions */
+function hideKeys(){ document.getElementById("keysModal").style.display = 'none'; }
+async function showKeys(addr){
+  try{
+    // if addr passed, use it, else use selected
+    const forAddr = addr || selected;
+    const v = await rpc("getViewKey", { address: forAddr });
+    const s = await rpc("getSpendKeys", { address: forAddr });
+    let m = {};
+    try{ m = await rpc("getMnemonicSeed"); }catch(e){ /* optional */ }
+    document.getElementById("viewKey").textContent = v.viewSecretKey || '(n/a)';
+    document.getElementById("spendKey").textContent = s.spendSecretKey || '(n/a)';
+    document.getElementById("mnemonic").textContent = m.mnemonicSeed || '(n/a)';
+    document.getElementById("keysModal").style.display = 'flex';
+  }catch(e){
+    alert("Show keys failed: "+JSON.stringify(e));
+  }
+}
+function copyText(id){
+  const text = document.getElementById(id).textContent || '';
+  navigator.clipboard.writeText(text).then(()=>{ alert("Copied"); }).catch(()=>{ alert("Copy failed"); });
+}
+
+/* CONFIRM modal utility */
+let confirmCallback = null;
+function showConfirm(title, message, requiredText, onOk){
+  confirmCallback = null;
+  document.getElementById("confirmTitle").textContent = title;
+  document.getElementById("confirmMessage").textContent = message;
+  document.getElementById("confirmInput").value = '';
+  document.getElementById("confirmModal").style.display = 'flex';
+  confirmCallback = async ()=>{
+    const val = document.getElementById("confirmInput").value || '';
+    if(val !== requiredText){
+      alert(`Type exactly: ${requiredText}`);
+      return;
+    }
+    document.getElementById("confirmModal").style.display = 'none';
+    await onOk();
+  };
+}
+function hideConfirm(){ document.getElementById("confirmModal").style.display = 'none'; confirmCallback = null; }
+function runConfirmOk(){ if(confirmCallback) confirmCallback(); }
+
+/* SEND */
+async function send(){
+  try{
+    const toEl = document.getElementById("to");
+    const amountEl = document.getElementById("amount");
+    const feeEl = document.getElementById("fee");
+    const sendFromEl = document.getElementById("sendFrom");
+
+    const amountKRB = parseFloat(amountEl.value);
+    if(!toEl.value || isNaN(amountKRB)){ sendStatus.textContent = "Enter valid destination and amount"; return; }
+    const feeAtomic = Math.floor(parseFloat(feeEl.value) * ATOMIC);
+
+    const p = {
+      transfers: [{ address: toEl.value, amount: Math.floor(amountKRB * ATOMIC) }],
+      changeAddress: selected,
+      fee: feeAtomic,
+      anonymity: 7,
+      unlockTime: 0
+    };
+    if(sendFromEl.value) p.addresses = [sendFromEl.value];
+
+    const r = await rpc("sendTransaction", p);
+    sendStatus.textContent = "TX sent: " + (r.transactionHash || r.txHash || '(ok)');
+    // refresh balances & transactions
+    await loadAll();
+  }catch(e){
+    console.error("send error", e);
+    sendStatus.textContent = "Error: " + (e.message || JSON.stringify(e));
+  }
+}
+
+/* SEARCH filter */
+document.getElementById("searchAddr").addEventListener('input', (ev)=>{
+  searchTerm = ev.target.value.trim();
+  loadAddressesAndBalances();
+});
+
+/* STARTUP */
+loadAll();
+
+// periodic poller: initial poll also
+setInterval(async ()=>{ try{ await poller(); }catch(e){console.error(e);} }, POLL_INTERVAL_MS);
+
 </script>
 </body>
 </html>
