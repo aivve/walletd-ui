@@ -15,7 +15,7 @@
   },
   "build": {
     "appId": "org.karbo.walletd-ui",
-    "productName": "Karbo Wallet",
+    "productName": "Karbo Payment Gate Wallet",
     "files": [
       "main.js",
       "preload.js",
@@ -35,7 +35,8 @@
           "arch": ["x64"]
         }
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
