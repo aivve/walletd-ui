@@ -108,7 +108,7 @@ function createWindow() {
     height: 820,
     minWidth: 900,
     minHeight: 600,
-    title: 'Karbo Wallet',
+    title: 'Karbo Payment Gate Wallet',
     icon: path.join(__dirname, 'build', 'icon.ico'),
     backgroundColor: '#0f1720',
     webPreferences: {

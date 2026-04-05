@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Karbo Wallet</title>
+<title>Karbo Payment Gate Wallet</title>
 <style>
 :root {
   --bg: #0f1720; --panel: #1a2330; --panel2: #202b3b; --accent: #4fa3c7;
@@ -134,7 +134,7 @@ tr.clickable { cursor: pointer; }
 <header>
   <div class="logo">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2500000 2500000"><path fill="#01579b" d="M1251219 1162750c18009,-3203 34019,-10006 48025,-20412 14009,-10407 27215,-28016 39622,-52029l275750 -538290c10803,-18010 24012,-32419 39218,-43625 15210,-10806 33219,-16410 53232,-16410l174893 0 -343384 633144c-15209,26016 -32419,47228 -51628,63635 -19613,16409 -41225,28815 -64838,37221 36822,9604 67638,25213 92854,47225 24812,21610 48425,52025 70437,91247l330578 668363 -192503 0c-38822,0 -70041,-21213 -93653,-63235l-270947 -566303c-14006,-25215 -29216,-43225 -45622,-54034 -16409,-10803 -37222,-17206 -62034,-18809l0 287359 -151281 0 0 -288559 -111263 0 0 703581 -213716 0 0 -1540835 213716 0 0 673166 111263 0 0 -332981 151281 0 0 330581z"/></svg>
-    Karbo Wallet
+    
   </div>
   <div class="header-right">
     <div>
@@ -698,111 +698,198 @@ async function updateStatus() {
 }
 
 /* ============================================================
-   ADDRESSES
+   ADDRESSES — virtual scrolling + lazy balance loading
    ============================================================ */
+const ADDR_ITEM_HEIGHT = 88;   // px per address card (including margin)
+const ADDR_OVERSCAN = 5;       // extra items rendered above/below viewport
+const balanceCache = new Map(); // addr -> {available, locked, ts}
+const BALANCE_TTL = 60000;     // cache balance for 60s
+
 async function loadAddresses() {
   try {
     const r = await rpc('getAddresses');
     const addrs = r.addresses || [];
-    const list = [];
-    let totalAvail = 0, totalLocked = 0;
-
-    // Fetch all balances in parallel
-    const balances = await Promise.all(addrs.map(addr =>
-      rpc('getBalance', { address: addr }).catch(() => ({ availableBalance: 0, lockedAmount: 0 }))
-    ));
-
-    addrs.forEach((addr, i) => {
-      const b = balances[i];
-      list.push({ addr, available: b.availableBalance || 0, locked: b.lockedAmount || 0 });
-      totalAvail += (b.availableBalance || 0);
-      totalLocked += (b.lockedAmount || 0);
+    addressList = addrs.map(addr => {
+      const cached = balanceCache.get(addr);
+      return { addr, available: cached?.available || 0, locked: cached?.locked || 0 };
     });
 
-    addressList = list;
     if (!selectedAddr && addressList.length) selectedAddr = addressList[0].addr;
 
-    el('totalBalance').textContent = `${fmtShort(totalAvail)} KRB`;
-    el('totalLocked').textContent = totalLocked > 0 ? `+ ${fmtShort(totalLocked)} locked` : '';
+    // Fetch total balance with a single RPC call (no address param = total)
+    try {
+      const total = await rpc('getBalance');
+      el('totalBalance').textContent = `${fmtShort(total.availableBalance || 0)} KRB`;
+      el('totalLocked').textContent = (total.lockedAmount > 0) ? `+ ${fmtShort(total.lockedAmount)} locked` : '';
+    } catch (e) {
+      el('totalBalance').textContent = '—';
+    }
 
     filterAndRenderAddresses();
     populateSelects();
+
+    // Lazy-load balance for selected address
+    if (selectedAddr) fetchBalanceFor(selectedAddr);
   } catch (e) {
     console.error('loadAddresses:', e);
   }
 }
 
-function filterAndRenderAddresses() {
-  filteredAddrs = addressList.filter(a => !searchTerm || a.addr.toLowerCase().includes(searchTerm.toLowerCase()));
-  renderAddressList();
+async function fetchBalanceFor(addr) {
+  const cached = balanceCache.get(addr);
+  if (cached && Date.now() - cached.ts < BALANCE_TTL) return cached;
+  try {
+    const b = await rpc('getBalance', { address: addr });
+    const entry = { available: b.availableBalance || 0, locked: b.lockedAmount || 0, ts: Date.now() };
+    balanceCache.set(addr, entry);
+    // Update in addressList
+    const item = addressList.find(a => a.addr === addr);
+    if (item) { item.available = entry.available; item.locked = entry.locked; }
+    return entry;
+  } catch (e) {
+    return { available: 0, locked: 0 };
+  }
 }
 
-function renderAddressList() {
+function filterAndRenderAddresses() {
+  filteredAddrs = addressList.filter(a => !searchTerm || a.addr.toLowerCase().includes(searchTerm.toLowerCase()));
+  renderVirtualList();
+}
+
+// Virtual scrolling: only render visible address cards
+let addrScrollRAF = null;
+function renderVirtualList() {
   const container = el('addrList');
-  container.innerHTML = '';
+  const totalHeight = filteredAddrs.length * ADDR_ITEM_HEIGHT;
+  const scrollTop = container.scrollTop || 0;
+  const viewHeight = container.clientHeight || 500;
 
-  filteredAddrs.forEach(a => {
-    const card = document.createElement('div');
-    card.className = 'address-card' + (a.addr === selectedAddr ? ' selected' : '');
+  const startIdx = Math.max(0, Math.floor(scrollTop / ADDR_ITEM_HEIGHT) - ADDR_OVERSCAN);
+  const endIdx = Math.min(filteredAddrs.length, Math.ceil((scrollTop + viewHeight) / ADDR_ITEM_HEIGHT) + ADDR_OVERSCAN);
 
-    card.innerHTML = `
-      <div class="addr-balance">${fmtShort(a.available)} KRB</div>
-      ${a.locked > 0 ? `<div class="addr-locked">+ ${fmtShort(a.locked)} locked</div>` : ''}
+  // Build HTML for visible items only
+  let html = `<div style="height:${startIdx * ADDR_ITEM_HEIGHT}px"></div>`;
+  for (let i = startIdx; i < endIdx; i++) {
+    const a = filteredAddrs[i];
+    const sel = a.addr === selectedAddr ? ' selected' : '';
+    const hasBal = balanceCache.has(a.addr);
+    const balText = hasBal ? fmtShort(a.available) + ' KRB' : '...';
+    const lockText = (hasBal && a.locked > 0) ? `<div class="addr-locked">+ ${fmtShort(a.locked)} locked</div>` : '';
+    html += `<div class="address-card${sel}" data-idx="${i}">
+      <div class="addr-balance">${balText}</div>
+      ${lockText}
       <div class="addr-hash">${a.addr}</div>
       <div class="addr-actions">
-        <button class="small" onclick="event.stopPropagation(); copyToClipboard('${a.addr}')">Copy</button>
-        <button class="small" onclick="event.stopPropagation(); showKeys('${a.addr}')">Keys</button>
-        <button class="small" onclick="event.stopPropagation(); prepareSendFrom('${a.addr}')">Send</button>
-        <button class="small danger" onclick="event.stopPropagation(); deleteAddress('${a.addr}')">Delete</button>
+        <button class="small" data-action="copy" data-addr="${a.addr}">Copy</button>
+        <button class="small" data-action="keys" data-addr="${a.addr}">Keys</button>
+        <button class="small" data-action="send" data-addr="${a.addr}">Send</button>
+        <button class="small danger" data-action="delete" data-addr="${a.addr}">Delete</button>
       </div>
-    `;
+    </div>`;
+  }
+  html += `<div style="height:${(filteredAddrs.length - endIdx) * ADDR_ITEM_HEIGHT}px"></div>`;
+  container.innerHTML = html;
 
-    card.addEventListener('click', () => {
+  // Lazy-fetch balances for visible items that aren't cached
+  for (let i = startIdx; i < endIdx; i++) {
+    const a = filteredAddrs[i];
+    if (!balanceCache.has(a.addr)) {
+      fetchBalanceFor(a.addr).then(() => {
+        // Re-render only if still in viewport
+        if (!addrScrollRAF) { addrScrollRAF = requestAnimationFrame(() => { addrScrollRAF = null; renderVirtualList(); }); }
+      });
+    }
+  }
+}
+
+// Event delegation for address list (instead of per-card listeners)
+el('addrList').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (btn) {
+    e.stopPropagation();
+    const addr = btn.dataset.addr;
+    switch (btn.dataset.action) {
+      case 'copy': copyToClipboard(addr); break;
+      case 'keys': showKeys(addr); break;
+      case 'send': prepareSendFrom(addr); break;
+      case 'delete': deleteAddress(addr); break;
+    }
+    return;
+  }
+  const card = e.target.closest('.address-card');
+  if (card) {
+    const idx = parseInt(card.dataset.idx);
+    const a = filteredAddrs[idx];
+    if (a) {
       selectedAddr = a.addr;
       allTxs = [];
       currentPage = 0;
-      renderAddressList();
+      renderVirtualList();
+      fetchBalanceFor(a.addr).then(() => renderVirtualList());
       initAndLoadTxs();
-    });
+    }
+  }
+});
 
-    container.appendChild(card);
-  });
-}
+// Re-render on scroll
+el('addrList').addEventListener('scroll', () => {
+  if (!addrScrollRAF) {
+    addrScrollRAF = requestAnimationFrame(() => { addrScrollRAF = null; renderVirtualList(); });
+  }
+});
 
 function populateSelects() {
-  // Send From
+  // For large wallets, selects with 2300+ options are also slow.
+  // Use a simple dropdown with selected + type-to-search hint.
   const sf = el('sendFrom');
   const sfVal = sf.value;
   sf.innerHTML = '<option value="">(all addresses - auto select)</option>';
-  addressList.forEach(a => {
-    sf.innerHTML += `<option value="${a.addr}">${a.addr.slice(0, 20)}... (${fmtShort(a.available)} KRB)</option>`;
-  });
-  sf.value = sfVal;
+  // Only add selected address and a few recent ones to keep DOM light
+  if (selectedAddr) {
+    sf.innerHTML += `<option value="${selectedAddr}">${selectedAddr.slice(0, 24)}... (selected)</option>`;
+  }
+  // Add up to 50 addresses with cached balances (most relevant)
+  let count = 0;
+  for (const a of addressList) {
+    if (a.addr === selectedAddr) continue;
+    if (count >= 50) break;
+    const cached = balanceCache.get(a.addr);
+    const balStr = cached ? ` (${fmtShort(cached.available)} KRB)` : '';
+    sf.innerHTML += `<option value="${a.addr}">${a.addr.slice(0, 24)}...${balStr}</option>`;
+    count++;
+  }
+  if (addressList.length > 51) {
+    sf.innerHTML += `<option disabled>... ${addressList.length - 51} more (use address filter)</option>`;
+  }
+  sf.value = sfVal || '';
 
   // Change address
   const sc = el('sendChange');
   const scVal = sc.value;
   sc.innerHTML = '<option value="">(auto)</option>';
-  addressList.forEach(a => {
-    sc.innerHTML += `<option value="${a.addr}">${a.addr.slice(0, 20)}...</option>`;
-  });
-  sc.value = scVal;
+  if (selectedAddr) {
+    sc.innerHTML += `<option value="${selectedAddr}">${selectedAddr.slice(0, 24)}... (selected)</option>`;
+  }
+  sc.value = scVal || '';
 
-  // Reserve proof address
+  // Reserve proof - just use selected
   const ra = el('reserveAddr');
   if (ra) {
-    const raVal = ra.value;
     ra.innerHTML = '';
-    addressList.forEach(a => {
-      ra.innerHTML += `<option value="${a.addr}">${a.addr.slice(0, 20)}... (${fmtShort(a.available)} KRB)</option>`;
-    });
-    if (raVal) ra.value = raVal;
+    if (selectedAddr) {
+      ra.innerHTML = `<option value="${selectedAddr}">${selectedAddr.slice(0, 24)}...</option>`;
+    }
   }
 }
 
+// Debounced search
+let searchTimeout = null;
 el('addrSearch').addEventListener('input', e => {
-  searchTerm = e.target.value.trim();
-  filterAndRenderAddresses();
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    searchTerm = e.target.value.trim();
+    filterAndRenderAddresses();
+  }, 200);
 });
 
 /* ============================================================
